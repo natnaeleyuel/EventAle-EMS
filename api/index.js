@@ -14,12 +14,24 @@ const fs = require('fs');
 const salt = bcrypt.genSaltSync(10);
 const secret = 'asdfe45we45w345wegw345werjktjwertkj';
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://keen-platypus-3fb64f.netlify.app'
+];
+
 app.use(cors({
-  credentials:true,
-  origin:'http://localhost:3000', 
-  origin: 'https://67674588ad7680d674744d1d--keen-platypus-3fb64f.netlify.app',
+  credentials: true,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(express.json());
 app.use(cookieParser());
