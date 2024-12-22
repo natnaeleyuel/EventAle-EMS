@@ -1,11 +1,11 @@
 import {Link} from "react-router-dom";
-import {useContext, useEffect, useState} from "react";
+import {useContext, useEffect} from "react";
 import {UserContext} from "./UserContext";
 
 export default function Header() {
   const {setUserInfo,userInfo} = useContext(UserContext);
   useEffect(() => {
-    fetch('https://eventale-ems.onrender.com/profile', {
+    fetch('http://localhost:5000/profile', {
       credentials: 'include',
     }).then(response => {
       response.json().then(userInfo => {
@@ -15,7 +15,7 @@ export default function Header() {
   }, []);
 
   function logout() {
-    fetch('https://eventale-ems.onrender.com/logout', {
+    fetch('http://localhost:5000/logout', {
       credentials: 'include',
       method: 'POST',
     });

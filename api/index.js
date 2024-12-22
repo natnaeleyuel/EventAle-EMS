@@ -10,25 +10,21 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const uploadMiddleware = multer({ dest: 'uploads/' });
 const fs = require('fs');
+const dotenv = require('dotenv');
 
+dotenv.config();
 const salt = bcrypt.genSaltSync(10);
-const JWT_SECRET = 'asdfe45we45w345wegw345werjktjwertkj';
-const CONNECT_KEY = 'mongodb+srv://techsavvynat:cHcBnCxxUujPSO25@cluster0.2xekt.mongodb.net/?retryWrites=true&w=majority&appName=ems-cluster';
-const PORT = 4000;
 
-mongoose.connect(CONNECT_KEY);
+const secret = process.env.SECRET_KEY;
+const dburl = process.env.DB_URL;
+const port = process.env.PORT;
+mongoose.connect(dburl);
 
-const corsOptions = {
-  origin: 'https://adorable-beijinho-860c22.netlify.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors({credentials: true,corsOptions}));
-
+app.use(cors({credentials:true,origin:'http://localhost:3000'}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
+
 
 app.post('/register', async (req,res) => {
   const {username,password} = req.body;
@@ -50,7 +46,7 @@ app.post('/login', async (req,res) => {
   const passOk = bcrypt.compareSync(password, userDoc.password);
   if (passOk) {
     // logged in
-    jwt.sign({username,id:userDoc._id}, JWT_SECRET, {}, (err,token) => {
+    jwt.sign({username,id:userDoc._id}, secret, {}, (err,token) => {
       if (err) throw err;
       res.cookie('token', token).json({
         id:userDoc._id,
@@ -64,7 +60,7 @@ app.post('/login', async (req,res) => {
 
 app.get('/profile', (req,res) => {
   const {token} = req.cookies;
-  jwt.verify(token, JWT_SECRET, {}, (err,info) => {
+  jwt.verify(token, secret, {}, (err,info) => {
     if (err) throw err;
     res.json(info);
   });
@@ -82,7 +78,7 @@ app.post('/post', uploadMiddleware.single('file'), async (req,res) => {
   fs.renameSync(path, newPath);
 
   const {token} = req.cookies;
-  jwt.verify(token, JWT_SECRET, {}, async (err,info) => {
+  jwt.verify(token, secret, {}, async (err,info) => {
     if (err) throw err;
     const {title,summary,content} = req.body;
     const postDoc = await Post.create({
@@ -92,6 +88,37 @@ app.post('/post', uploadMiddleware.single('file'), async (req,res) => {
       cover:newPath,
       author:info.id,
     });
+    res.json(postDoc);
+  });
+
+});
+
+app.put('/post',uploadMiddleware.single('file'), async (req,res) => {
+  let newPath = null;
+  if (req.file) {
+    const {originalname,path} = req.file;
+    const parts = originalname.split('.');
+    const ext = parts[parts.length - 1];
+    newPath = path+'.'+ext;
+    fs.renameSync(path, newPath);
+  }
+
+  const {token} = req.cookies;
+  jwt.verify(token, secret, {}, async (err,info) => {
+    if (err) throw err;
+    const {id,title,summary,content} = req.body;
+    const postDoc = await Post.findById(id);
+    const isAuthor = JSON.stringify(postDoc.author) === JSON.stringify(info.id);
+    if (!isAuthor) {
+      return res.status(400).json('you are not the author');
+    }
+    await postDoc.update({
+      title,
+      summary,
+      content,
+      cover: newPath ? newPath : postDoc.cover,
+    });
+
     res.json(postDoc);
   });
 
@@ -112,5 +139,5 @@ app.get('/post/:id', async (req, res) => {
   res.json(postDoc);
 })
 
-app.listen(PORT);
+app.listen(port);
 //

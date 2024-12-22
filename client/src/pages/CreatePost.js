@@ -17,7 +17,7 @@ export default function CreatePost() {
     data.set('content', content);
     data.set('file', files[0]);
     ev.preventDefault();
-    const response = await fetch('https://eventale-ems.onrender.com/post', {
+    const response = await fetch('http://localhost:5000/post', {
       method: 'POST',
       body: data,
       credentials: 'include',
@@ -68,7 +68,8 @@ export default function CreatePost() {
                 ev.target.value = '';
                 alert('Please select only image files.');
               }
-              setFiles(ev.target.files)}} required/>
+              setFiles(ev.target.files)}} required
+      />
       <Editor value={content} onChange={setContent} required/>
       <button style={{marginTop:'5px'}}>Create post</button>
     </form>
