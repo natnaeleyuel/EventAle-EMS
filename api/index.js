@@ -18,24 +18,13 @@ const PORT = 4000;
 
 mongoose.connect(CONNECT_KEY);
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'https://keen-platypus-3fb64f.netlify.app'
-];
-
-app.use(cors({
-  credentials: true,
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+const corsOptions = {
+  origin: 'https://adorable-beijinho-860c22.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+};
+
+app.use(cors({credentials: true,corsOptions}));
 
 app.use(express.json());
 app.use(cookieParser());
