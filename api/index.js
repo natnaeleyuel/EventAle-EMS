@@ -12,7 +12,11 @@ const uploadMiddleware = multer({ dest: 'uploads/' });
 const fs = require('fs');
 
 const salt = bcrypt.genSaltSync(10);
-const secret = 'asdfe45we45w345wegw345werjktjwertkj';
+const JWT_SECRET = 'asdfe45we45w345wegw345werjktjwertkj';
+const CONNECT_KEY = 'mongodb+srv://techsavvynat:cHcBnCxxUujPSO25@cluster0.2xekt.mongodb.net/?retryWrites=true&w=majority&appName=ems-cluster';
+const PORT = 4000;
+
+mongoose.connect(CONNECT_KEY);
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -37,8 +41,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
 
-mongoose.connect('mongodb+srv://techsavvynat:cHcBnCxxUujPSO25@cluster0.2xekt.mongodb.net/?retryWrites=true&w=majority&appName=ems-cluster');
-
 app.post('/register', async (req,res) => {
   const {username,password} = req.body;
   try{
@@ -59,7 +61,7 @@ app.post('/login', async (req,res) => {
   const passOk = bcrypt.compareSync(password, userDoc.password);
   if (passOk) {
     // logged in
-    jwt.sign({username,id:userDoc._id}, secret, {}, (err,token) => {
+    jwt.sign({username,id:userDoc._id}, JWT_SECRET, {}, (err,token) => {
       if (err) throw err;
       res.cookie('token', token).json({
         id:userDoc._id,
@@ -73,7 +75,7 @@ app.post('/login', async (req,res) => {
 
 app.get('/profile', (req,res) => {
   const {token} = req.cookies;
-  jwt.verify(token, secret, {}, (err,info) => {
+  jwt.verify(token, JWT_SECRET, {}, (err,info) => {
     if (err) throw err;
     res.json(info);
   });
@@ -91,7 +93,7 @@ app.post('/post', uploadMiddleware.single('file'), async (req,res) => {
   fs.renameSync(path, newPath);
 
   const {token} = req.cookies;
-  jwt.verify(token, secret, {}, async (err,info) => {
+  jwt.verify(token, JWT_SECRET, {}, async (err,info) => {
     if (err) throw err;
     const {title,summary,content} = req.body;
     const postDoc = await Post.create({
@@ -121,5 +123,5 @@ app.get('/post/:id', async (req, res) => {
   res.json(postDoc);
 })
 
-app.listen(4000);
+app.listen(PORT);
 //
