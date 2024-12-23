@@ -20,7 +20,12 @@ const dburl = process.env.DB_URL;
 const port = process.env.PORT;
 mongoose.connect(dburl);
 
-app.use(cors({credentials:true,origin:'http://localhost:3000'}));
+app.use(cors(
+  {
+    credentials:true,
+    origin:'https://event-ale-doc.vercel.com'
+  }
+));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(__dirname + '/uploads'));
