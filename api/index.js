@@ -20,10 +20,12 @@ const dburl = process.env.DB_URL;
 const port = process.env.PORT;
 mongoose.connect(dburl);
 
+allowedOrigin = ['http://localhost:3000', 'https://event-ale-ems-k7hv.vercel.app']
+
 app.use(cors(
   {
     credentials:true,
-    origin:'https://event-ale-doc.vercel.com'
+    origin:'https://event-ale-ems-k7hv.vercel.app'
   }
 ));
 app.use(express.json());
